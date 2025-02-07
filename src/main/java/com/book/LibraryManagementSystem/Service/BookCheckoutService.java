@@ -1,0 +1,143 @@
+package com.book.LibraryManagementSystem.Service;
+
+import com.book.LibraryManagementSystem.LibraryDTO.CheckOutRequest;
+import com.book.LibraryManagementSystem.LibraryDTO.CheckOutResponse;
+import com.book.LibraryManagementSystem.Model.BookCheckoutModel;
+import com.book.LibraryManagementSystem.Model.CatalogModel;
+import com.book.LibraryManagementSystem.Model.UserModel;
+import com.book.LibraryManagementSystem.Repository.BookCheckoutRepository;
+import com.book.LibraryManagementSystem.Repository.CatalogRepository;
+import com.book.LibraryManagementSystem.Repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class BookCheckoutService {
+
+    @Autowired
+    private BookCheckoutRepository bookCheckoutRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CatalogRepository catalogRepository;
+
+    public ResponseEntity<CheckOutResponse> issueBook(Long userId, Long bookId, Long requestedQuantity) {
+        // Validate user existence
+        Optional<UserModel> user = userRepository.findById(userId);
+        if(!user.isPresent()) {
+            throw new RuntimeException("User not found with User ID: "+userId);
+        }
+
+        CatalogModel catalog = catalogRepository.findByBookId(bookId);
+        if (catalog == null || catalog.getQuantity() < requestedQuantity)
+        {
+            throw new RuntimeException("Book not available in sufficient quantity");
+        }
+
+        BookCheckoutModel existingCheckout = bookCheckoutRepository.findByUserIdAndBookId(userId, bookId).orElse(null);
+
+        if (existingCheckout != null)
+        {
+            existingCheckout.setRequestedQuantity(existingCheckout.getRequestedQuantity() + requestedQuantity.intValue());
+            bookCheckoutRepository.save(existingCheckout);
+        }
+        else
+        {
+            catalog.setQuantity(catalog.getQuantity() - requestedQuantity.intValue());
+            if (catalog.getQuantity() == 0) {
+                catalogRepository.delete(catalog);
+            } else {
+                catalogRepository.save(catalog);
+            }
+
+            BookCheckoutModel checkout = new BookCheckoutModel();
+            checkout.setBookId(bookId);
+            checkout.setUserId(userId);
+            checkout.setRequestedQuantity(requestedQuantity.intValue());
+            checkout.setIssuedAt(LocalDate.now());
+            checkout.setDueDate(LocalDate.now().plusDays(30));
+
+            bookCheckoutRepository.save(checkout);
+        }
+
+        CheckOutResponse response = new CheckOutResponse();
+        response.setBookId(bookId);
+        response.setUserId(userId);
+        response.setRequestedQuantity(requestedQuantity.intValue());
+        response.setIssuedAt(LocalDate.now());
+
+        return ResponseEntity.ok(response);
+    }
+
+    public List<CheckOutResponse> totalIssuedBook() {
+        List<BookCheckoutModel> issuedBooks = bookCheckoutRepository.findAll();
+
+        Map<Long, Integer> bookQuantityMap = new HashMap<>();
+        for (BookCheckoutModel checkout : issuedBooks) {
+            bookQuantityMap.put(checkout.getBookId(),
+                    bookQuantityMap.getOrDefault(checkout.getBookId(), 0) +
+                            checkout.getRequestedQuantity());
+        }
+
+        List<CheckOutResponse> responseList = new ArrayList<>();
+        for (Map.Entry<Long, Integer> entry : bookQuantityMap.entrySet()) {
+            CheckOutResponse response = new CheckOutResponse();
+            response.setBookId(entry.getKey());
+            response.setRequestedQuantity(entry.getValue());
+            responseList.add(response);
+        }
+
+        return responseList;
+    }
+
+    public List<CheckOutResponse> totalIssuedBook(Long bookId) {
+        List<BookCheckoutModel> issuedBooks = bookCheckoutRepository.findByBookId(bookId);
+        return issuedBooks.stream().map(this::mapToCheckOutResponse).collect(Collectors.toList());
+    }
+
+    public List<CheckOutResponse> getIssuedBooksByUser(Long userId) {
+        List<BookCheckoutModel> issuedBooks = bookCheckoutRepository.findByUserId(userId);
+
+        // Convert to DTO response
+        return issuedBooks.stream()
+                .map(this::mapToCheckOutResponse)
+                .collect(Collectors.toList());
+    }
+
+    public boolean isBookIssuedByAnyone(Long bookId) {
+        List<BookCheckoutModel> issuedBooks = bookCheckoutRepository.findByBookId(bookId);
+        return !issuedBooks.isEmpty();
+    }
+
+    public String returnBook(Long userId, Long bookId) {
+        BookCheckoutModel checkout = bookCheckoutRepository.findByUserIdAndBookId(userId, bookId)
+                .orElseThrow(() -> new RuntimeException("No issued record found"));
+
+        bookCheckoutRepository.delete(checkout);
+
+        CatalogModel catalog = catalogRepository.findByBookId(bookId);
+        if (catalog != null)
+        {
+            catalog.setQuantity(catalog.getQuantity() + checkout.getRequestedQuantity());
+            catalogRepository.save(catalog);
+        }
+
+        return "Book returned successfully";
+    }
+
+    private CheckOutResponse mapToCheckOutResponse(BookCheckoutModel checkout) {
+        CheckOutResponse response = new CheckOutResponse();
+        response.setBookId(checkout.getBookId());
+        response.setUserId(checkout.getUserId());
+        response.setRequestedQuantity(checkout.getRequestedQuantity());
+        response.setIssuedAt(checkout.getIssuedAt());
+        return response;
+    }
+}
