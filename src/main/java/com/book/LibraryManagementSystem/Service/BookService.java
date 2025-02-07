@@ -1,5 +1,6 @@
 package com.book.LibraryManagementSystem.Service;
 
+import com.book.LibraryManagementSystem.Exception.LibraryException;
 import com.book.LibraryManagementSystem.LibraryDTO.BookRequest;
 import com.book.LibraryManagementSystem.LibraryDTO.BookResponse;
 import com.book.LibraryManagementSystem.Model.BookModel;
@@ -9,6 +10,7 @@ import com.book.LibraryManagementSystem.Repository.BookRepository;
 import com.book.LibraryManagementSystem.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -21,29 +23,26 @@ public class BookService {
     @Autowired
     private BookRepository bookRepository;
 
-
-
     @Autowired
     private UserRepository userRepository;
 
     private String checkUserRole(Long userId) {
         Optional<UserModel> user = userRepository.findById(userId);
         if (!user.isPresent()) {
-            return "User not found with User ID: " + userId;
+            return "User  not found with User ID: " + userId;
         }
         if (user.get().getRole() == Role.ADMIN) {
             return "ADMIN";
         }
-        return "User is not an ADMIN";
+        return "User  is not an ADMIN";
     }
 
     public BookResponse createBook(BookRequest bookRequest, Long userId) {
         String userRole = checkUserRole(userId);
-        if ("User not found with User ID: ".equals(userRole)) {
-            throw new RuntimeException(userRole);
-        } else if ("User is not an ADMIN".equals(userRole)) {
-
-            throw new RuntimeException("Only ADMIN users can create books.");
+        if ("User  not found with User ID: ".equals(userRole)) {
+            throw new LibraryException(userRole);
+        } else if ("User  is not an ADMIN".equals(userRole)) {
+            throw new LibraryException("Only ADMIN users can create books.");
         }
 
         BookModel book = new BookModel();
@@ -59,10 +58,8 @@ public class BookService {
         return mapToBookResponse(savedBook);
     }
 
-
     public List<BookResponse> getAllBooks() {
         List<BookModel> allBooks = bookRepository.findAll();
-
         return allBooks.stream()
                 .map(this::mapToBookResponse)
                 .collect(Collectors.toList());
@@ -71,7 +68,7 @@ public class BookService {
     public BookResponse getBookById(Long bookId) {
         Optional<BookModel> isExists = bookRepository.findById(bookId);
         if (!isExists.isPresent())
-            throw new RuntimeException("Book not found with ID: " + bookId);
+            throw new LibraryException("Book not found with ID: " + bookId);
         else {
             BookModel book = isExists.get();
             return mapToBookResponse(book);
@@ -80,15 +77,15 @@ public class BookService {
 
     public BookResponse updateBook(Long bookId, BookRequest bookRequest, Long userId) {
         String userRole = checkUserRole(userId);
-        if ("User not found with User ID: ".equals(userRole)) {
-            throw new RuntimeException(userRole);
-        } else if ("User is not an ADMIN".equals(userRole)) {
-            throw new RuntimeException("Only ADMIN users can update books.");
+        if ("User  not found with User ID: ".equals(userRole)) {
+            throw new LibraryException(userRole);
+        } else if ("User  is not an ADMIN".equals(userRole)) {
+            throw new LibraryException("Only ADMIN users can update books.");
         }
 
         Optional<BookModel> isExists = bookRepository.findById(bookId);
         if (!isExists.isPresent())
-            throw new RuntimeException("Book not found with ID: " + bookId);
+            throw new LibraryException("Book not found with ID: " + bookId);
 
         BookModel existingBook = isExists.get();
         existingBook.setTitle(bookRequest.getTitle());
@@ -103,24 +100,23 @@ public class BookService {
         return mapToBookResponse(existingBook);
     }
 
-
     public String deleteBook(Long bookId, Long userId) {
         String userRole = checkUserRole(userId);
-        if ("User not found with User ID: ".equals(userRole)) {
-            throw new RuntimeException(userRole);
-        } else if ("User is not an ADMIN".equals(userRole)) {
-            throw new RuntimeException("Only ADMIN users can delete books.");
+        if ("User  not found with User ID: ".equals(userRole)) {
+            throw new LibraryException(userRole);
+        } else if ("User  is not an ADMIN".equals(userRole)) {
+            throw new LibraryException("Only ADMIN users can delete books.");
         }
 
         Optional<BookModel> isExists = bookRepository.findById(bookId);
         if (!isExists.isPresent()) {
-            throw new RuntimeException("Book not found with ID: " + bookId);
+            throw new LibraryException("Book not found with ID: " + bookId);
         }
 
         bookRepository.deleteById(bookId);
         return "Book deleted successfully!";
     }
-//------------------------------------------------------------------------------
+
 
         public Map<String, List<BookResponse>> getAllBooksByGenre() {
         List<BookModel> books = bookRepository.findAll();
@@ -134,14 +130,13 @@ public class BookService {
     }
 
     public List<BookResponse> getBooksByGenre(String genre) {
-        List<BookModel> books = bookRepository.findByGenre(genre); // Custom query needed
-
+        List<BookModel> books = bookRepository.findByGenre(genre);
         return books.stream()
                 .map(this::mapToBookResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<BookResponse> getBooksByTitle(String title) {
+        public List<BookResponse> getBooksByTitle(String title) {
         List<BookModel> books = bookRepository.findByTitle(title);
 
         return books.stream()
@@ -156,12 +151,7 @@ public class BookService {
                 .map(this::mapToBookResponse)
                 .collect(Collectors.toList());
     }
-
-
-
-    //-----------------------------------------------------------------------------------------
-
-        public List<BookResponse> getBooksInYear(Long year)
+            public List<BookResponse> getBooksInYear(Long year)
     {
         List<BookModel> books=bookRepository.findBooksByYear(year);
 
@@ -170,8 +160,7 @@ public class BookService {
                 .collect(Collectors.toList());
 
     }
-
-    public List<BookResponse> getBooksFromYear1ToYear2(Long year1,Long year2)
+        public List<BookResponse> getBooksFromYear1ToYear2(Long year1,Long year2)
     {
         List<BookModel> books=bookRepository.findBooksByRange(year1,year2);
 
@@ -180,6 +169,7 @@ public class BookService {
                 .collect(Collectors.toList());
 
     }
+
     private BookResponse mapToBookResponse(BookModel book) {
         return new BookResponse(
                 book.getId(),
@@ -193,4 +183,3 @@ public class BookService {
         );
     }
 }
-

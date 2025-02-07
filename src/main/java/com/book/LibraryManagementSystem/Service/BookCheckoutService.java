@@ -1,5 +1,6 @@
 package com.book.LibraryManagementSystem.Service;
 
+import com.book.LibraryManagementSystem.Exception.LibraryException;
 import com.book.LibraryManagementSystem.LibraryDTO.CheckOutRequest;
 import com.book.LibraryManagementSystem.LibraryDTO.CheckOutResponse;
 import com.book.LibraryManagementSystem.Model.BookCheckoutModel;
@@ -29,27 +30,22 @@ public class BookCheckoutService {
     private CatalogRepository catalogRepository;
 
     public ResponseEntity<CheckOutResponse> issueBook(Long userId, Long bookId, Long requestedQuantity) {
-        // Validate user existence
         Optional<UserModel> user = userRepository.findById(userId);
-        if(!user.isPresent()) {
-            throw new RuntimeException("User not found with User ID: "+userId);
+        if (!user.isPresent()) {
+            throw new LibraryException("User  not found with User ID: " + userId);
         }
 
         CatalogModel catalog = catalogRepository.findByBookId(bookId);
-        if (catalog == null || catalog.getQuantity() < requestedQuantity)
-        {
-            throw new RuntimeException("Book not available in sufficient quantity");
+        if (catalog == null || catalog.getQuantity() < requestedQuantity) {
+            throw new LibraryException("Book not available in sufficient quantity");
         }
 
         BookCheckoutModel existingCheckout = bookCheckoutRepository.findByUserIdAndBookId(userId, bookId).orElse(null);
 
-        if (existingCheckout != null)
-        {
+        if (existingCheckout != null) {
             existingCheckout.setRequestedQuantity(existingCheckout.getRequestedQuantity() + requestedQuantity.intValue());
             bookCheckoutRepository.save(existingCheckout);
-        }
-        else
-        {
+        } else {
             catalog.setQuantity(catalog.getQuantity() - requestedQuantity.intValue());
             if (catalog.getQuantity() == 0) {
                 catalogRepository.delete(catalog);
@@ -102,10 +98,8 @@ public class BookCheckoutService {
         return issuedBooks.stream().map(this::mapToCheckOutResponse).collect(Collectors.toList());
     }
 
-    public List<CheckOutResponse> getIssuedBooksByUser(Long userId) {
+    public List<CheckOutResponse> getIssuedBooksByUser (Long userId) {
         List<BookCheckoutModel> issuedBooks = bookCheckoutRepository.findByUserId(userId);
-
-        // Convert to DTO response
         return issuedBooks.stream()
                 .map(this::mapToCheckOutResponse)
                 .collect(Collectors.toList());
@@ -118,13 +112,12 @@ public class BookCheckoutService {
 
     public String returnBook(Long userId, Long bookId) {
         BookCheckoutModel checkout = bookCheckoutRepository.findByUserIdAndBookId(userId, bookId)
-                .orElseThrow(() -> new RuntimeException("No issued record found"));
+                .orElseThrow(() -> new LibraryException("No issued record found"));
 
         bookCheckoutRepository.delete(checkout);
 
         CatalogModel catalog = catalogRepository.findByBookId(bookId);
-        if (catalog != null)
-        {
+        if (catalog != null) {
             catalog.setQuantity(catalog.getQuantity() + checkout.getRequestedQuantity());
             catalogRepository.save(catalog);
         }

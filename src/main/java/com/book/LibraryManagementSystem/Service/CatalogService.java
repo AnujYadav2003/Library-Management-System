@@ -1,5 +1,5 @@
 package com.book.LibraryManagementSystem.Service;
-
+import com.book.LibraryManagementSystem.Exception.LibraryException;
 import com.book.LibraryManagementSystem.LibraryDTO.CatalogRequest;
 import com.book.LibraryManagementSystem.LibraryDTO.CatalogResponse;
 import com.book.LibraryManagementSystem.Model.BookModel;
@@ -30,12 +30,12 @@ public class CatalogService {
 
     public CatalogResponse addBooks(CatalogRequest catalogRequest, Long userId) {
         if (userId == null) {
-            throw new RuntimeException("User ID cannot be null");
+            throw new LibraryException("User  ID cannot be null");
         }
 
         String userRole = checkUserRole(userId);
         if (!"ADMIN".equals(userRole)) {
-            throw new RuntimeException("Only ADMIN users can modify the catalog");
+            throw new LibraryException("Only ADMIN users can modify the catalog");
         }
 
         CatalogModel existingCatalog = catalogRepository.findByBookId(catalogRequest.getBookId());
@@ -47,12 +47,12 @@ public class CatalogService {
         } else {
             Optional<BookModel> book = bookRepository.findById(catalogRequest.getBookId());
             if (!book.isPresent()) {
-                throw new RuntimeException("Book not found with Book ID: " + catalogRequest.getBookId());
+                throw new LibraryException("Book not found with Book ID: " + catalogRequest.getBookId());
             }
 
             CatalogModel catalog = new CatalogModel();
-            catalog.setBookId(book.get().getId()); // Setting the bookId
-            catalog.setQuantity(catalogRequest.getQuantity()); // Setting quantity
+            catalog.setBookId(book.get().getId());
+            catalog.setQuantity(catalogRequest.getQuantity());
             catalog.setUserId(userId);
 
             CatalogModel savedCatalog = catalogRepository.save(catalog);
@@ -69,22 +69,21 @@ public class CatalogService {
 
     public CatalogResponse getCatalogById(Long catalogId) {
         CatalogModel catalog = catalogRepository.findById(catalogId)
-                .orElseThrow(() -> new RuntimeException("Catalog not found with Catalog ID: " + catalogId));
+                .orElseThrow(() -> new LibraryException("Catalog not found with Catalog ID: " + catalogId));
         return mapToCatalogResponse(catalog);
     }
 
     public CatalogResponse reduceBookQuantity(Long bookId, Integer quantity, Long userId) {
-
         String userRole = checkUserRole(userId);
         if (!"ADMIN".equals(userRole)) {
-            throw new RuntimeException("Only ADMIN users can modify the catalog");
+            throw new LibraryException("Only ADMIN users can modify the catalog");
         }
         CatalogModel catalog = catalogRepository.findByBookId(bookId);
         if (catalog == null) {
-            throw new RuntimeException("Book not found in the catalog with Book ID: " + bookId);
+            throw new LibraryException("Book not found in the catalog with Book ID: " + bookId);
         }
         if (catalog.getQuantity() < quantity) {
-            throw new RuntimeException("Not enough quantity in catalog to reduce for Book ID: " + bookId);
+            throw new LibraryException("Not enough quantity in catalog to reduce for Book ID: " + bookId);
         }
 
         catalog.setQuantity(catalog.getQuantity() - quantity);
@@ -100,18 +99,17 @@ public class CatalogService {
     private String checkUserRole(Long userId) {
         Optional<UserModel> user = userRepository.findById(userId);
         if (!user.isPresent()) {
-            return "User not found with User ID: " + userId;
+            throw new LibraryException("User  not found with User ID: " + userId);
         }
-        if (Role.ADMIN.equals(user.get().getRole()))
-        {
+        if (Role.ADMIN.equals(user.get().getRole())) {
             return "ADMIN";
         }
-        return "User is not an ADMIN";
+        return "User  is not an ADMIN";
     }
 
     private CatalogResponse mapToCatalogResponse(CatalogModel catalog) {
         BookModel book = bookRepository.findById(catalog.getBookId())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new LibraryException("Book not found"));
 
         return new CatalogResponse(
                 catalog.getId(),
@@ -122,5 +120,4 @@ public class CatalogService {
                 catalog.getUserId()
         );
     }
-
 }
