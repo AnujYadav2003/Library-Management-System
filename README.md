@@ -34,103 +34,15 @@ The Library Management System is a web application designed to manage the operat
 - [ ] **JPA (Java Persistence API)**: ORM for interacting with the database.
 - [ ] **Maven**: Dependency and project management.
 
+
 ---
 
 # Library Management System API Documentation
 
-## UserController
-### REST API for User Controller
+<img width="892" alt="s1" src="https://github.com/user-attachments/assets/6d39860a-8eb1-45a2-a12d-2154c8edd8d8" />
+<img width="896" alt="s2" src="https://github.com/user-attachments/assets/750c8b35-d7f3-4f4c-8272-babe38ce5d92" />
+<img width="896" alt="s3" src="https://github.com/user-attachments/assets/680a0a2d-44cc-40ff-bbe2-596cdf9c841a" />
+<img width="848" alt="s4" src="https://github.com/user-attachments/assets/8c5350bb-8184-4e9b-a34f-a5d9e5e5b126" />
+<img width="857" alt="s5" src="https://github.com/user-attachments/assets/12d9bba4-c69c-4ba3-a389-0334abe68325" />
 
-- **PUT** `/api/users/update/{userId}`
-  - Update user information.
-
-- **PUT** `/api/users/update/role/{role}/{userId}`
-  - Update the role of a user.
-
-- **POST** `/api/users/register`
-  - Register a new user.
-
-- **GET** `/api/users/getUser ById/{userId}`
-  - Retrieve user information by user ID.
-
-- **GET** `/api/users/getAllUsers`
-  - Retrieve a list of all users.
-
-- **DELETE** `/api/users/deleteUser ById/{userId}`
-  - Delete a user by user ID.
-
----
-
-## BookCheckOutController
-### REST API for BookCheckOut Controller
-
-- **PUT** `/api/checkOut/returnBook/userId/{userId}/bookId/{bookId}`
-  - Return a book by user ID and book ID.
-
-- **POST** `/api/checkOut/issue/userId/{userId}/bookId/{bookId}/reqQuantity/{requestedQuantity}`
-  - Issue a book to a user with the requested quantity.
-
-- **GET** `/api/checkOut/issuedBooks/user/{userId}`
-  - Retrieve all books issued to a specific user.
-
-- **GET** `/api/checkOut/isIssuedBook/{bookId}`
-  - Check if a specific book is issued.
-
-- **GET** `/api/checkOut/getAllIssuedBook`
-  - Retrieve a list of all issued books.
-
----
-
-## BookController
-### REST API for Book Controller
-
-- **PUT** `/api/books/updateBookById/bookId/{bookId}/userId/{userId}`
-  - Update book information by book ID and user ID.
-
-- **POST** `/api/books/create/{userId}`
-  - Create a new book entry.
-
-- **GET** `/api/books/searchBookByTitle/{title}`
-  - Search for books by title.
-
-- **GET** `/api/books/searchBookByGenre/{genre}`
-  - Search for books by genre.
-
-- **GET** `/api/books/searchBookByAuthor/{author}`
-  - Search for books by author.
-
-- **GET** `/api/books/groupBooksByGenre`
-  - Group books by genre.
-
-- **GET** `/api/books/get BooksPublishedIn/{year}`
-  - Retrieve books published in a specific year.
-
-- **GET** `/api/books/getBooksPublished/{year1}/to/{year2}`
-  - Retrieve books published within a specified range of years.
-
-- **GET** `/api/books/getBooksById/{bookId}`
-  - Retrieve book information by book ID.
-
-- **GET** `/api/books/getAllBooks`
-  - Retrieve a list of all books.
-
-- **DELETE** `/api/books/deleteBookById/bookId/{bookId}/userId/{userId}`
-  - Delete a book by book ID and user ID.
-
----
-
-## CatalogController
-### REST API for Catalog Controller
-
-- **PUT** `/api/catalog/reduceQuantity/bookId/{bookId}/quantity/{quantity}/userId/{userId}`
-  - Reduce the quantity of a book in the catalog.
-
-- **POST** `/api/catalog/add/userId/{userId}`
-  - Add a new catalog entry.
-
-- **GET** `/api/catalog/getCatalogById/{catalogId}`
-  - Retrieve catalog information by catalog ID.
-
-- **GET** `/api/catalog/getAll`
-  - Retrieve a list of all catalog entries.
 
