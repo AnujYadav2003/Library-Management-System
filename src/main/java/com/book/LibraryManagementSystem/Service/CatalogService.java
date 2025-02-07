@@ -10,6 +10,7 @@ import com.book.LibraryManagementSystem.Repository.BookRepository;
 import com.book.LibraryManagementSystem.Repository.CatalogRepository;
 import com.book.LibraryManagementSystem.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,12 +31,12 @@ public class CatalogService {
 
     public CatalogResponse addBooks(CatalogRequest catalogRequest, Long userId) {
         if (userId == null) {
-            throw new LibraryException("User  ID cannot be null");
+            throw new LibraryException("User  ID cannot be null", HttpStatus.BAD_REQUEST);
         }
 
         String userRole = checkUserRole(userId);
         if (!"ADMIN".equals(userRole)) {
-            throw new LibraryException("Only ADMIN users can modify the catalog");
+            throw new LibraryException("Only ADMIN users can modify the catalog", HttpStatus.BAD_REQUEST);
         }
 
         CatalogModel existingCatalog = catalogRepository.findByBookId(catalogRequest.getBookId());
@@ -47,7 +48,7 @@ public class CatalogService {
         } else {
             Optional<BookModel> book = bookRepository.findById(catalogRequest.getBookId());
             if (!book.isPresent()) {
-                throw new LibraryException("Book not found with Book ID: " + catalogRequest.getBookId());
+                throw new LibraryException("Book not found with Book ID: " + catalogRequest.getBookId(), HttpStatus.BAD_REQUEST);
             }
 
             CatalogModel catalog = new CatalogModel();
@@ -69,21 +70,21 @@ public class CatalogService {
 
     public CatalogResponse getCatalogById(Long catalogId) {
         CatalogModel catalog = catalogRepository.findById(catalogId)
-                .orElseThrow(() -> new LibraryException("Catalog not found with Catalog ID: " + catalogId));
+                .orElseThrow(() -> new LibraryException("Catalog not found with Catalog ID: " + catalogId, HttpStatus.BAD_REQUEST));
         return mapToCatalogResponse(catalog);
     }
 
     public CatalogResponse reduceBookQuantity(Long bookId, Integer quantity, Long userId) {
         String userRole = checkUserRole(userId);
         if (!"ADMIN".equals(userRole)) {
-            throw new LibraryException("Only ADMIN users can modify the catalog");
+            throw new LibraryException("Only ADMIN users can modify the catalog", HttpStatus.BAD_REQUEST);
         }
         CatalogModel catalog = catalogRepository.findByBookId(bookId);
         if (catalog == null) {
-            throw new LibraryException("Book not found in the catalog with Book ID: " + bookId);
+            throw new LibraryException("Book not found in the catalog with Book ID: " + bookId, HttpStatus.BAD_REQUEST);
         }
         if (catalog.getQuantity() < quantity) {
-            throw new LibraryException("Not enough quantity in catalog to reduce for Book ID: " + bookId);
+            throw new LibraryException("Not enough quantity in catalog to reduce for Book ID: " + bookId, HttpStatus.BAD_REQUEST);
         }
 
         catalog.setQuantity(catalog.getQuantity() - quantity);
@@ -99,7 +100,7 @@ public class CatalogService {
     private String checkUserRole(Long userId) {
         Optional<UserModel> user = userRepository.findById(userId);
         if (!user.isPresent()) {
-            throw new LibraryException("User  not found with User ID: " + userId);
+            throw new LibraryException("User  not found with User ID: " + userId, HttpStatus.BAD_REQUEST);
         }
         if (Role.ADMIN.equals(user.get().getRole())) {
             return "ADMIN";
@@ -109,7 +110,7 @@ public class CatalogService {
 
     private CatalogResponse mapToCatalogResponse(CatalogModel catalog) {
         BookModel book = bookRepository.findById(catalog.getBookId())
-                .orElseThrow(() -> new LibraryException("Book not found"));
+                .orElseThrow(() -> new LibraryException("Book not found", HttpStatus.BAD_REQUEST));
 
         return new CatalogResponse(
                 catalog.getId(),

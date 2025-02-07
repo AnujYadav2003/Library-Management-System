@@ -10,6 +10,7 @@ import com.book.LibraryManagementSystem.Repository.BookCheckoutRepository;
 import com.book.LibraryManagementSystem.Repository.CatalogRepository;
 import com.book.LibraryManagementSystem.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -32,12 +33,12 @@ public class BookCheckoutService {
     public ResponseEntity<CheckOutResponse> issueBook(Long userId, Long bookId, Long requestedQuantity) {
         Optional<UserModel> user = userRepository.findById(userId);
         if (!user.isPresent()) {
-            throw new LibraryException("User  not found with User ID: " + userId);
+            throw new LibraryException("User", "id", userId, HttpStatus.NOT_FOUND);
         }
 
         CatalogModel catalog = catalogRepository.findByBookId(bookId);
         if (catalog == null || catalog.getQuantity() < requestedQuantity) {
-            throw new LibraryException("Book not available in sufficient quantity");
+            throw new LibraryException("Book", "id", bookId, HttpStatus.BAD_REQUEST);
         }
 
         BookCheckoutModel existingCheckout = bookCheckoutRepository.findByUserIdAndBookId(userId, bookId).orElse(null);
@@ -112,7 +113,7 @@ public class BookCheckoutService {
 
     public String returnBook(Long userId, Long bookId) {
         BookCheckoutModel checkout = bookCheckoutRepository.findByUserIdAndBookId(userId, bookId)
-                .orElseThrow(() -> new LibraryException("No issued record found"));
+                .orElseThrow(() -> new LibraryException("No issued record found", HttpStatus.NOT_FOUND));
 
         bookCheckoutRepository.delete(checkout);
 

@@ -9,6 +9,7 @@ import com.book.LibraryManagementSystem.Model.UserModel;
 import com.book.LibraryManagementSystem.Repository.BookRepository;
 import com.book.LibraryManagementSystem.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -40,9 +41,9 @@ public class BookService {
     public BookResponse createBook(BookRequest bookRequest, Long userId) {
         String userRole = checkUserRole(userId);
         if ("User  not found with User ID: ".equals(userRole)) {
-            throw new LibraryException(userRole);
+            throw new LibraryException(userRole, HttpStatus.BAD_REQUEST);
         } else if ("User  is not an ADMIN".equals(userRole)) {
-            throw new LibraryException("Only ADMIN users can create books.");
+            throw new LibraryException("Only ADMIN users can create books.", HttpStatus.BAD_REQUEST);
         }
 
         BookModel book = new BookModel();
@@ -68,7 +69,7 @@ public class BookService {
     public BookResponse getBookById(Long bookId) {
         Optional<BookModel> isExists = bookRepository.findById(bookId);
         if (!isExists.isPresent())
-            throw new LibraryException("Book not found with ID: " + bookId);
+            throw new LibraryException("Book not found with ID: " + bookId, HttpStatus.BAD_REQUEST);
         else {
             BookModel book = isExists.get();
             return mapToBookResponse(book);
@@ -78,14 +79,14 @@ public class BookService {
     public BookResponse updateBook(Long bookId, BookRequest bookRequest, Long userId) {
         String userRole = checkUserRole(userId);
         if ("User  not found with User ID: ".equals(userRole)) {
-            throw new LibraryException(userRole);
+            throw new LibraryException(userRole, HttpStatus.BAD_REQUEST);
         } else if ("User  is not an ADMIN".equals(userRole)) {
-            throw new LibraryException("Only ADMIN users can update books.");
+            throw new LibraryException("Only ADMIN users can update books.", HttpStatus.BAD_REQUEST);
         }
 
         Optional<BookModel> isExists = bookRepository.findById(bookId);
         if (!isExists.isPresent())
-            throw new LibraryException("Book not found with ID: " + bookId);
+            throw new LibraryException("Book not found with ID: " + bookId, HttpStatus.BAD_REQUEST);
 
         BookModel existingBook = isExists.get();
         existingBook.setTitle(bookRequest.getTitle());
@@ -103,14 +104,14 @@ public class BookService {
     public String deleteBook(Long bookId, Long userId) {
         String userRole = checkUserRole(userId);
         if ("User  not found with User ID: ".equals(userRole)) {
-            throw new LibraryException(userRole);
+            throw new LibraryException(userRole, HttpStatus.BAD_REQUEST);
         } else if ("User  is not an ADMIN".equals(userRole)) {
-            throw new LibraryException("Only ADMIN users can delete books.");
+            throw new LibraryException("Only ADMIN users can delete books.", HttpStatus.BAD_REQUEST);
         }
 
         Optional<BookModel> isExists = bookRepository.findById(bookId);
         if (!isExists.isPresent()) {
-            throw new LibraryException("Book not found with ID: " + bookId);
+            throw new LibraryException("Book not found with ID: " + bookId, HttpStatus.BAD_REQUEST);
         }
 
         bookRepository.deleteById(bookId);

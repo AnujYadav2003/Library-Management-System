@@ -7,6 +7,7 @@ import com.book.LibraryManagementSystem.Model.Role;
 import com.book.LibraryManagementSystem.Model.UserModel;
 import com.book.LibraryManagementSystem.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,14 +23,14 @@ public class UserService {
     private Optional<UserModel> findUserById(Long userId) {
         Optional<UserModel> user = userRepository.findById(userId);
         if (!user.isPresent()) {
-            throw new LibraryException("User  not found with User ID: " + userId);
+            throw new LibraryException("User", "id", userId, HttpStatus.NOT_FOUND);
         }
         return user;
     }
 
     public UserResponse createUser (UserRequest userRequest) {
         if (userRequest.getUsername() == null || userRequest.getEmail() == null) {
-            throw new LibraryException("Username and Email cannot be null");
+            throw new  LibraryException("Username and Email cannot be null", HttpStatus.BAD_REQUEST);
         }
 
         UserModel user = new UserModel();
@@ -62,7 +63,7 @@ public class UserService {
         try {
             newRole = Role.valueOf(changedRole.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new LibraryException("Invalid role: " + changedRole);
+            throw new LibraryException("Invalid role: " + changedRole, HttpStatus.BAD_REQUEST);
         }
 
         if (user.getRole().equals(newRole)) {
