@@ -31,7 +31,6 @@ The Library Management System is a web application designed to manage the operat
 - [ ] **Java**: Core backend development.
 - [ ] **Spring Boot**: Framework for building RESTful APIs.
 - [ ] **MySQL**: Database for storing user and application data.
-- [ ] **JWT (JSON Web Tokens)**: For secure API endpoints.
 - [ ] **JPA (Java Persistence API)**: ORM for interacting with the database.
 - [ ] **Maven**: Dependency and project management.
 
