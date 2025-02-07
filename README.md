@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Library Management System is a web application designed to manage the operations of a library. It allows users to perform various actions based on their roles (Admin and User). The system is built using Spring Boot for the backend and MySQL as the database.
+The Library Management System is a web application designed to manage the operations of a library. It allows users to perform various actions based on their roles (ADMIN and USER). The system is built using Spring Boot for the backend and MySQL as the database.
 
 ## Features
 
